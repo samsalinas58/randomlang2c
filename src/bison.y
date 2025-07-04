@@ -3,7 +3,6 @@
     #include "tree.h"
     #include <stdbool.h>
     #include <stdarg.h>
-    #include <stdlib.h>
 
     int yylex(void);
     extern int yyparse();

@@ -100,6 +100,7 @@ void prgrm(ast_node *root){
                     depth += 1; 
                     _declarations(curr->a.ch[0]);
                     _statement_sequence(curr->a.ch[1]);
+                    depth -= 1;
                     break;
             }
             break;
@@ -166,7 +167,9 @@ void _if(ast_node *if_stmt){
     if (asprintf(&s, "if (%s) {", expr) < 0)
         yyerror("failed asprintf in _if");
     _insert(s);
+    depth += 1;
     _statement_sequence(if_stmt->a.ch[1]);
+    depth -= 1;
     _insert("}");
     _else(if_stmt->a.ch[2]);
 }
@@ -174,7 +177,9 @@ void _if(ast_node *if_stmt){
 void _else(ast_node* else_cl){
     if (else_cl == NULL) return;
     _insert("else {");
+    depth += 1;
     _statement_sequence(else_cl->a.ch[0]);
+    depth -= 1;
     _insert("}");
 }
 
@@ -185,7 +190,9 @@ void _while(ast_node *while_stmt){
     if (asprintf(&s, "while (%s) {", expr) < 0)
         yyerror("failed asprintf in _while");
     _insert(s);
+    depth += 1;
     _statement_sequence(while_stmt->a.ch[1]);
+    depth -= 1;
     _insert("}");
 }
 
@@ -282,7 +289,6 @@ char* _term(ast_node *term){
         default:
             return _factor(term);
     }
-
 }
 
 char* _factor(ast_node *factor){
@@ -316,19 +322,35 @@ char* _factor(ast_node *factor){
     }
 }
 
+char* _leftPadTabs(char *s, int size) {
+    if (size == 0) return s;
+    size_t len = strlen(s);
+    int sz = size + len;
+    char *temp = realloc(s, sizeof(char) * sz);
+    if (temp != NULL) s = temp;
+    else printf("Error when reallocating space.\n");
+
+    printf("strlen(s) = %d, sz = %d\n", strlen(s), sz);
+    int i;
+    len--;
+    for (i = sz - 1; len >= 0; i--)
+        s[i] = s[len--];
+    for (i = 0; i < size; i++) s[i] = '\t';
+    printf("s = %s\n", s);
+    return s;
+}
+
 void _insert(char *s){
     if (++sz >= cap) cap *= 2;
     char **temp = realloc(code, sizeof(char*) * cap);
     if (temp == NULL) yyerror("failed to realloc()");
     else code = temp;
+    s = _leftPadTabs(s, depth);
     code[sz - 1] = s;
 }
 
 void _print_code_buffer(){
     int i = 0;
-    while (code[i] != NULL) {
-        printf("%s\n", code[i]);
-        ++i;
-    }
+    while (code[i] != NULL) printf("%s\n", code[i++]);
 }
 

@@ -47,7 +47,7 @@ WHITESPACE  " "
     }
 
 {ident} {
-        if ((yylval.id = strdup(yytext)) == NULL) yyerror("failed strdup()");
+        if ((yylval.id = strdup(yytext)) == NULL) perror("failed strdup()");
         return(ident);
     }
 
@@ -60,17 +60,17 @@ WHITESPACE  " "
 {SC} {return(SC);}
 
 {OP2} {
-    if ((yylval.op = strdup(yytext)) == NULL) yyerror("failed strdup()");
+    if ((yylval.op = strdup(yytext)) == NULL) perror("failed strdup()");
     return(OP2);
     }
 
 {OP3} {
-    if ((yylval.op = strdup(yytext)) == NULL) yyerror("failed strdup()");
+    if ((yylval.op = strdup(yytext)) == NULL) perror("failed strdup()");
     return(OP3);
     }
 
 {OP4} {
-    if ((yylval.op = strdup(yytext)) == NULL) yyerror("failed strdup()");
+    if ((yylval.op = strdup(yytext)) == NULL) perror(NULL);
     return(OP4);
     }
 
