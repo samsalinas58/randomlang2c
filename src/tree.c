@@ -51,7 +51,6 @@ ast_node *id(char *id){
 ast_node *opr(char *op){
     ast_node *p;
     size_t ast_node_size = sizeof(ast_node);
-    size_t id_size = strlen(op) + 1;
 
     if ((p = malloc(ast_node_size)) == NULL) yyerror("out of memory");
     if ((p->opr.op = strdup(op)) == NULL) yyerror("failed to call strdup() in opr"); 
@@ -64,7 +63,7 @@ ast_node *opr(char *op){
 ast_node *constant(int val){
     ast_node *p;
 
-    if ((p = malloc(sizeof(ast_node))) == NULL) yyerror("out of memory");
+    if ((p = malloc(sizeof(ast_node))) == NULL) perror("out of memory");
 
     p->type = typeCon;
     p->con.value = val;
@@ -119,11 +118,11 @@ void _declarations(ast_node *decl) {
     char *s;
     switch (token){
         case INT:
-            if (asprintf(&s, "int %s;", id) < 0) yyerror("Failed to create string");
+            if (asprintf(&s, "int %s;", id) < 0) perror("Failed to create string");
             _insert(s);
             break;
         case BOOL: 
-            if (asprintf(&s, "bool %s;", id) < 0) yyerror("Failed to create string");
+            if (asprintf(&s, "bool %s;", id) < 0) perror("Failed to create string");
             _insert(s);
             break;
     }
@@ -165,7 +164,7 @@ void _if(ast_node *if_stmt){
     char *s;
     char *expr = _expression(if_stmt->a.ch[0]);
     if (asprintf(&s, "if (%s) {", expr) < 0)
-        yyerror("failed asprintf in _if");
+        perror("failed asprintf in _if");
     _insert(s);
     depth += 1;
     _statement_sequence(if_stmt->a.ch[1]);
@@ -234,7 +233,7 @@ char* _expression(ast_node *expr){
                     op = expr->a.ch[1]->opr.op;
                     s2 = _simple_expression(expr->a.ch[2]);
                     if (asprintf(&s, "%s %s %s", s1, op, s2) < 0) 
-                        yyerror("Failed asprintf in _expression");
+                        perror("Failed asprintf in _expression");
                     return s;
                     break;
 
@@ -323,27 +322,24 @@ char* _factor(ast_node *factor){
 }
 
 char* _leftPadTabs(char *s, int size) {
-    if (size == 0) return s;
+    if (size <= 0) return s;
     size_t len = strlen(s);
-    int sz = size + len;
-    char *temp = realloc(s, sizeof(char) * sz);
-    if (temp != NULL) s = temp;
-    else printf("Error when reallocating space.\n");
+    int new_size = size + len;
+    printf("(s = %s) (strlen(s) = %lu) (new_size = %d)\n", s, strlen(s), new_size);
+    char *new = malloc(sizeof(char) * new_size);
 
-    printf("strlen(s) = %d, sz = %d\n", strlen(s), sz);
-    int i;
-    len--;
-    for (i = sz - 1; len >= 0; i--)
-        s[i] = s[len--];
-    for (i = 0; i < size; i++) s[i] = '\t';
-    printf("s = %s\n", s);
-    return s;
+    for (int i = new_size - 1, idx = --len; i >= size; i--, idx--) {
+        new[i] = s[idx];
+	}
+    for (int i = 0; i < size; i++) new[i] = '\t';
+    printf("new = %s\n", new);
+    return new;
 }
 
 void _insert(char *s){
     if (++sz >= cap) cap *= 2;
     char **temp = realloc(code, sizeof(char*) * cap);
-    if (temp == NULL) yyerror("failed to realloc()");
+    if (temp == NULL) perror("failed to realloc()");
     else code = temp;
     s = _leftPadTabs(s, depth);
     code[sz - 1] = s;

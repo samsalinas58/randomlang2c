@@ -3,6 +3,7 @@
     #include "tree.h"
     #include <stdbool.h>
     #include <stdarg.h>
+	#include <stdlib.h>
 
     int yylex(void);
     extern int yyparse();
@@ -143,21 +144,25 @@ factor:
 %%
 
 int yyerror(char *s) {
-  printf("yyerror : %s\n",s);
+		printf("yyerror : %s\n",s);
 }
 
 int main(int argc, char** argv) {
-    // Open a file handle to a particular file:
-    FILE *myfile = fopen("input.txt", "r");
-    // Make sure it is valid:
-    if (!myfile) return -1;
-    // Set Flex to read from it instead of defaulting to STDIN:
-    yyin = myfile;
-    
-    // Parse through the input:
 
-    if (!yyparse()) return 0;
+		if (argc != 2) {
+				printf("Please specify an input file\n");
+				exit(1);
+		}
+		FILE *myfile = fopen(argv[1], "r");
 
-    return 1;
+		if (!myfile) return -1;
+
+		// Set Flex to read from the file instead of defaulting to STDIN
+		yyin = myfile;
+
+		// Parse through the input
+		if (!yyparse()) return 0;
+
+		return 1;
 
 }
